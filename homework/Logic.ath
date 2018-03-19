@@ -1,0 +1,17 @@
+module Logic {
+  define [A B C D E] := [?A:Boolean ?B:Boolean ?C:Boolean ?D:Boolean ?E:Boolean]
+
+  assert AssumptionA := (A & B ==> C)
+  conclude (A ==> B ==> C)
+  assume A
+    assume B
+      (!mp AssumptionA (!both A B))
+
+  assert AssumptionB := (A | B ==> C | D ==> E)
+  conclude (A ==> ~ E ==> ~ C)
+  assume A
+    assume (~ E)
+      (!by-contradiction (~ C)
+        assume C
+        (!absurd (~ E) (!mp (!mp AssumptionB (!left-either A B)) (!left-either C D))))
+}

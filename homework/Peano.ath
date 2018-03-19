@@ -1,0 +1,211 @@
+module Peano {
+  datatype N := Z | (S N)
+  define [n m p] := [?n:N ?m:N ?p:N]
+
+  declare Plus : [N N] -> N [+]
+  assert* Plus-Z-axiom := (n + Z = n)
+  assert* Plus-S-axiom := (n + S m = S (n + m))
+
+  define Plus-Z-left := (forall n . Z + n = n)
+  by-induction Plus-Z-left {
+    Z => (!chain [(Z + Z) = Z [Plus-Z-axiom]])
+  | (n as (S m)) =>
+      conclude (Z + n = n)
+      let {induction-hypothesis := (Z + m = m)}
+        (!chain [(Z + S m) = (S (Z + m)) [Plus-S-axiom]
+                           = (S m)       [induction-hypothesis]])
+  }
+
+  define Plus-Z-commutes := (forall n . n + Z = Z + n)
+  conclude Plus-Z-commutes pick-any a:N
+    (!chain [(a + Z) = a       [Plus-Z-axiom]
+                     = (Z + a) [Plus-Z-left]])
+
+  define (Plus-S-left-property m) := (forall n . (((S n) + m) = (S (n + m))))
+  define Plus-S-left := (forall m . Plus-S-left-property m)
+  by-induction Plus-S-left {
+    Z =>
+      conclude (Plus-S-left-property Z)
+      pick-any a:N
+      (!chain [((S a) + Z) = (S a) [Plus-Z-axiom]
+                           = (S (a + Z)) [Plus-Z-axiom]])
+  | (m as (S p)) =>
+      conclude (Plus-S-left-property m)
+      pick-any a:N
+      let {induction-hypothesis := (Plus-S-left-property p)}
+        (!chain [((S a) + (S p)) = (S ((S a) + p)) [Plus-S-axiom]
+	                         = (S (S (a + p))) [induction-hypothesis]
+				 = (S (a + (S p))) [Plus-S-axiom]])
+  }
+
+  define (Plus-commutes-property n) := (forall m . n + m = m + n)
+  define Plus-commutes := (forall n . Plus-commutes-property n)
+  by-induction Plus-commutes {
+    Z =>
+      conclude (Plus-commutes-property Z)
+      pick-any a:N
+      (!chain [(Z + a) = (a + Z) [Plus-Z-commutes]])
+  | (n as (S p)) =>
+      conclude (Plus-commutes-property n)
+      pick-any a:N
+      let {induction-hypothesis := (Plus-commutes-property p)}
+        (!chain [((S p) + a) = (S (p + a)) [Plus-S-left]
+                             = (S (a + p)) [induction-hypothesis]
+                             = (a + (S p)) [Plus-S-axiom]])
+  }
+
+  define (Plus-associates-property n) := (forall m p . ((n + m) + p) = (n + (m + p)))
+  define Plus-associates := (forall n . Plus-associates-property n)
+  by-induction Plus-associates {
+    Z =>
+      conclude (Plus-associates-property Z)
+      pick-any a:N b:N
+      (!chain [((Z + a) + b) = (a + b)       [Plus-Z-left]
+                             = (Z + (a + b)) [Plus-Z-left]])
+  | (n as (S p)) =>
+      conclude (Plus-associates-property n)
+      pick-any a:N b:N
+      let {induction-hypothesis := (Plus-associates-property p)}
+        (!chain [(((S p) + a) + b) = ((a + (S p)) + b) [Plus-commutes]
+	                           = ((S (a + p)) + b) [Plus-S-axiom]
+				   = (b + (S (a + p))) [Plus-commutes]
+				   = (S (b + (a + p))) [Plus-S-axiom]
+				   = (S ((a + p) + b)) [Plus-commutes]
+				   = (S ((p + a) + b)) [Plus-commutes]
+				   = (S (p + (a + b))) [induction-hypothesis]
+				   = ((S p) + (a + b)) [Plus-S-left]])
+  }
+
+  declare Mul : [N N] -> N [*]
+  assert* Mul-Z-axiom := (n * Z = Z)
+  assert* Mul-S-axiom := (n * S m = n + (n * m))
+
+  define (Mul-Z-left-property n) := (Z * n = Z)
+  define Mul-Z-left := (forall n . Mul-Z-left-property n)
+  by-induction Mul-Z-left {
+    Z =>
+      conclude (Mul-Z-left-property Z)
+      (!chain [(Z * Z) = Z [Mul-Z-axiom]])
+  | (n as (S p)) =>
+      conclude (Mul-Z-left-property n)
+      let {induction-hypothesis := (Mul-Z-left-property p)}
+        (!chain [(Z * (S p)) = (Z + (Z * p)) [Mul-S-axiom]
+	                     = (Z * p)       [Plus-Z-left]
+			     = Z             [induction-hypothesis]])
+  }
+
+  define (Mul-Plus-left-property m) := (forall n . ((S n) * m) = (m + (n * m)))
+  define Mul-Plus-left := (forall m . Mul-Plus-left-property m)
+  by-induction Mul-Plus-left {
+    Z =>
+      conclude (Mul-Plus-left-property Z)
+      pick-any a:N
+      (!chain [((S a) * Z) = Z             [Mul-Z-axiom]
+                           = (a * Z)       [Mul-Z-axiom]
+			   = (Z + (a * Z)) [Plus-Z-left]])
+  | (m as (S p)) =>
+      conclude (Mul-Plus-left-property m)
+      pick-any a:N
+      let {induction-hypothesis := (Mul-Plus-left-property p)}
+        (!chain [((S a) * (S p)) = ((S a) + ((S a) * p))   [Mul-S-axiom]
+	                         = ((S a) + (p + (a * p))) [induction-hypothesis]
+				 = (((S a) + p) + (a * p)) [Plus-associates]
+				 = ((S (a + p)) + (a * p)) [Plus-S-left]
+				 = ((a + (S p)) + (a * p)) [Plus-S-axiom]
+				 = (((S p) + a) + (a * p)) [Plus-commutes]
+				 = ((S p) + (a + (a * p))) [Plus-associates]
+				 = ((S p) + (a * (S p)))   [Mul-S-axiom]])
+  }
+
+  define (Mul-commutes-property n) := (forall m . (n * m) = (m * n))
+  define Mul-commutes := (forall n . Mul-commutes-property n)
+  by-induction Mul-commutes {
+    Z =>
+      conclude (Mul-commutes-property Z)
+      pick-any a:N
+      (!chain [(Z * a) = Z       [Mul-Z-left]
+                       = (a * Z) [Mul-Z-axiom]])
+  | (n as (S p)) =>
+      conclude (Mul-commutes-property n)
+      pick-any a:N
+      let {induction-hypothesis := (Mul-commutes-property p)}
+        (!chain [((S p) * a) = (a + (p * a)) [Mul-Plus-left]
+	                     = (a + (a * p)) [induction-hypothesis]
+			     = (a * (S p))   [Mul-S-axiom]])
+  }
+
+  define (Mul-distributes-Plus-property n) := (forall m p . ((m + p) * n) = ((m * n) + (p * n)))
+  define Mul-distributes-Plus := (forall n . Mul-distributes-Plus-property n)
+  by-induction Mul-distributes-Plus {
+    Z =>
+      conclude (Mul-distributes-Plus-property Z)
+      pick-any a:N b:N
+      (!chain [((a + b) * Z) = Z                   [Mul-Z-axiom]
+                             = (a * Z)             [Mul-Z-axiom]
+			     = ((a * Z) + Z)       [Plus-Z-axiom]
+			     = ((a * Z) + (b * Z)) [Mul-Z-axiom]])
+  | (n as (S p)) =>
+      conclude (Mul-distributes-Plus-property n)
+      pick-any a:N b:N
+      let {induction-hypothesis := (Mul-distributes-Plus-property p)}
+        (!chain [((a + b) * (S p)) = ((a + b) + ((a + b) * p)) [Mul-S-axiom]
+	                           = ((a + b) + ((a * p) + (b * p))) [induction-hypothesis]
+				   = (((a + b) + (a * p)) + (b * p)) [Plus-associates]
+				   = (((b + a) + (a * p)) + (b * p)) [Plus-commutes]
+				   = ((b + (a + (a * p))) + (b * p)) [Plus-associates]
+				   = ((b + (a * (S p))) + (b * p))   [Mul-S-axiom]
+				   = (((a * (S p)) + b) + (b * p))   [Plus-commutes]
+				   = ((a * (S p)) + (b + (b * p)))   [Plus-associates]
+				   = ((a * (S p)) + (b * (S p)))     [Mul-S-axiom]])
+  }
+
+  define (Mul-associates-property n) := (forall m p . ((n * m) * p) = (n * (m * p)))
+  define Mul-associates := (forall n . Mul-associates-property n)
+  by-induction Mul-associates {
+    Z =>
+      conclude (Mul-associates-property Z)
+      pick-any a:N b:N
+      (!chain [((Z * a) * b) = (Z * b)       [Mul-Z-left]
+                             = Z             [Mul-Z-left]
+			     = (Z * (a * b)) [Mul-Z-left]])
+  | (n as (S p)) =>
+      conclude (Mul-associates-property n)
+      pick-any a:N b:N
+      let {induction-hypothesis := (Mul-associates-property p)}
+        (!chain [(((S p) * a) * b) = ((a + (p * a)) * b)       [Mul-Plus-left]
+	                           = ((a * b) + ((p * a) * b)) [Mul-distributes-Plus]
+				   = ((a * b) + (p * (a * b))) [induction-hypothesis]
+				   = ((S p) * (a * b))         [Mul-Plus-left]])
+  }
+
+  declare Exp : [N N] -> N [**]
+  assert* Exp-Z-axiom := (n ** Z = S Z)
+  assert* Exp-S-axiom := (n ** S m = n * (n ** m))
+
+  define (Exp-distributes-Mul-property n) := (forall m p . ((m * p) ** n) = ((m ** n) * (p ** n)))
+  define Exp-distributes-Mul := (forall n . Exp-distributes-Mul-property n)
+  by-induction Exp-distributes-Mul {
+    Z =>
+      conclude (Exp-distributes-Mul-property Z)
+      pick-any a:N b:N
+      (!chain [((a * b) ** Z) = (S Z)                       [Exp-Z-axiom]
+                              = (a ** Z)                    [Exp-Z-axiom]
+			      = ((a ** Z) + Z)              [Plus-Z-axiom]
+			      = ((a ** Z) + ((a ** Z) * Z)) [Mul-Z-axiom]
+			      = ((a ** Z) * (S Z))          [Mul-S-axiom]
+			      = ((a ** Z) * (b ** Z))       [Exp-Z-axiom]])
+  | (n as (S p)) =>
+      conclude (Exp-distributes-Mul-property n)
+      pick-any a:N b:N
+      let {induction-hypothesis := (Exp-distributes-Mul-property p)}
+        (!chain [((a * b) ** (S p)) = ((a * b) * ((a * b) ** p))        [Exp-S-axiom]
+	                            = ((a * b) * ((a ** p) * (b ** p))) [induction-hypothesis]
+	                            = ((b * a) * ((a ** p) * (b ** p))) [Mul-commutes]
+	                            = (((b * a) * (a ** p)) * (b ** p)) [Mul-associates]
+	                            = ((b * (a * (a ** p))) * (b ** p)) [Mul-associates]
+	                            = ((b * (a ** (S p))) * (b ** p))   [Exp-S-axiom]
+	                            = (((a ** (S p)) * b) * (b ** p))   [Mul-commutes]
+	                            = ((a ** (S p)) * (b * (b ** p)))   [Mul-associates]
+	                            = ((a ** (S p)) * (b ** (S p)))     [Exp-S-axiom]])
+  }
+}

@@ -1,0 +1,12 @@
+Group: Samuel Breese
+
+Features:
+I have included equivalent proofs in Idris (alongside my Athena proofs), which is a general purpose functional language with dependent types (which make it suitable as a proof assistant by the Curry-Howard isomorphism).
+These may or may not be interesting to look at.
+Simpler proofs like the ones here are a good deal shorter in Idris, since equality is automatically checked on beta-reduced terms: this corresponds to not needing the axiomatic reductions found in Athena equality chains.
+Furthermore, the properties proved relate to actual programs, so the addition, multiplication, and exponentiation functions defined can actually be used.
+I expect Idris to become less suitable as the course progresses and more involved proofs are necessary, as it is not primarily used as a proof assistant, but I intend to try.
+Regardless, it has been a good experience so far and I would be interested in demonstrating some of Idris' features at the end of class sometime.
+
+Bugs:
+None that I am aware of. Athena verifies the theorems and I do not believe there are any extraneous axioms.
